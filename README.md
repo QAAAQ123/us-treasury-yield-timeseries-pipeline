@@ -1,29 +1,28 @@
-# U.S. Treasury Yield Spread Pipeline
+# U.S. Treasury Yield Timeseries Pipeline
 
-미국 국채의 10Y–2Y 및 10Y–3M 일드 스프레드를 수집·처리하고, 시계열 그래프로 시각화하는 프로젝트입니다.
+미국 국채의 만기별 수익률 시계열을 수집·정제하고, 이를 바탕으로 10Y–2Y 및 10Y–3M 일드 스프레드를 계산하여 일드 시계열과 스프레드 시계열을 함께 시각화하는 데이터 파이프라인 프로젝트입니다.
 
 ## 목적
 
-미국 국채의 장단기 금리차는 수익률 곡선의 형태와 경기침체 가능성을 살펴볼 때 활용되는 주요 경제 지표입니다.
-
-본 프로젝트는 미국 국채 금리 데이터를 자동으로 수집하고, 장단기 금리차를 계산 및 검증한 뒤 시각화하는 배치 데이터 파이프라인을 구축하는 것을 목표로 합니다.
+본 프로젝트는 미국 국채의 만기별 수익률 시계열을 자동으로 수집·정제하고, 데이터 품질을 검증한 뒤 일드(Yield)와 10Y–2Y 및 10Y–3M 일드 스프레드(Yield Spread)를 계산하여 각각 시계열 그래프로 시각화하는 배치 데이터 파이프라인을 구축하는 것을 목표로 합니다.
 
 주요 목표는 다음과 같습니다.
 
 - 미국 국채 금리 데이터의 자동 수집
+- 만기별 일드 시계열의 정제 및 데이터 정합성 검증, 중복 데이터 처리
 - 10Y–2Y 및 10Y–3M 일드 스프레드 계산
-- 데이터 정합성 검증 및 중복 데이터 처리
-- 시계열 데이터의 인터랙티브 시각화
+- 일드 시계열과 일드 스프레드 시계열의 인터랙티브 시각화
 - 정기적인 파이프라인 실행 및 결과물 자동 배포
 
 ## 대상 지표
 
-| 지표 | 정의 | 의미 | 주요 용도 |
+| 지표 | 정의 | 의미 | 실제 활용 |
 |---|---|---|---|
-| 10Y–2Y Yield Spread | 10년물 금리 − 2년물 금리 | 장기 금리와 중기 금리 간 차이 | 수익률 곡선 역전(Yield Curve Inversion) 모니터링 및 경기침체 위험 평가 |
-| 10Y–3M Yield Spread | 10년물 금리 − 3개월물 금리 | 장기 금리와 단기 금리 간 차이 | Federal Reserve Bank of New York이 활용하는 경기침체 확률 추정 지표 및 경기 선행 분석 |
+| 일드 시계열 | 만기별 국채 수익률의 날짜별 변화 | 금리 환경과 만기별 금리 추이 | 금리 추이 분석, 스프레드 계산의 기초 데이터 |
+| 10Y–2Y Yield Spread | 10년물 금리 − 2년물 금리 | 장기 금리와 중기 금리 간 차이 | 장단기 금리 역전 모니터링, 채권시장 분석 및 경기 전망 |
+| 10Y–3M Yield Spread | 10년물 금리 − 3개월물 금리 | 장기 금리와 단기 금리 간 차이 | 뉴욕 연은의 경기침체 확률 추정 모델, 경기 선행 지표 분석 |
 
-두 지표는 미국 국채의 장단기 금리차를 관찰하는 데 활용됩니다. 일반적으로 스프레드가 음수인 상태는 수익률 곡선의 역전을 의미합니다.
+일반적으로 스프레드가 음수인 상태는 수익률 곡선의 역전을 의미합니다.
 
 ## 기술 스택
 
@@ -51,16 +50,18 @@ Data Ingestion
 Data Cleaning & Validation
     │
     ▼
-Yield Spread Calculation
+Processed Yield Timeseries
     │
-    ▼
-Processed Data
-    │
-    ▼
-Interactive Visualization
-    │
-    ▼
-GitHub Pages
+    ├──────────────────────────┐
+    ▼                          ▼
+Yield Spread Calculation   Interactive Visualization (Yield Timeseries)
+    │                          │
+    ▼                          │
+Interactive Visualization (Spread Timeseries)
+    │                          │
+    └──────────────┬───────────┘
+                   ▼
+              GitHub Pages
 ```
 
 ### 1. 데이터 수집
@@ -73,11 +74,13 @@ GitHub Pages
 
 ### 3. 스프레드 계산
 
-수집한 국채 금리를 바탕으로 10Y–2Y 및 10Y–3M 스프레드를 계산합니다.
+정제된 만기별 일드 시계열을 바탕으로 10Y–2Y 및 10Y–3M 스프레드를 계산합니다.
 
 ### 4. 시각화
 
-Plotly를 활용해 날짜별 스프레드 변화를 확인할 수 있는 인터랙티브 시계열 그래프를 생성합니다.
+Plotly를 활용해 다음 두 가지 인터랙티브 시계열 그래프를 생성합니다.
+- 만기별 일드 시계열 그래프
+- 10Y–2Y 및 10Y–3M 스프레드 시계열 그래프
 
 ### 5. 자동화 및 배포
 
@@ -93,8 +96,8 @@ GitHub Actions를 이용해 데이터 수집, 처리, 시각화 결과물 생성
 ### 1. 저장소 복제
 
 ```bash
-git clone https://github.com/QAAAQ123/us-treasury-10y-2y-and-10y-3m-yield-spread-pipeline.git
-cd us-treasury-10y-2y-and-10y-3m-yield-spread-pipeline
+git clone https://github.com/QAAAQ123/us-treasury-yield-timeseries-pipeline.git
+cd us-treasury-yield-timeseries-pipeline
 ```
 
 ### 2. 가상환경 생성 및 활성화
@@ -126,7 +129,6 @@ ruff format --check .
 ## 데이터 출처
 
 - [U.S. Department of the Treasury(미 재무부)](https://home.treasury.gov/)
-
 
 ## 라이선스
 
