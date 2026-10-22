@@ -9,7 +9,8 @@
 정리: 2023년 이전은 decade/2024,2025는 연단위/2026년은 월단위(매일 업데이트)
 
 #### XML 데이터
-- field_tdr_date_value의 쿼리 `YYYY` 형식만 지원한다.
+- field_tdr_date_value의 값으로 `YYYY` 형식을 지원한다.
+- field_tdr_date_value_month의 값으로 `YYYYmm`형식을 지원한다.
 
 ## 2. Daily Treasury Par Yield Curve Rates 데이터 변화
 #### 1. 시계열 단절(Series Break)
@@ -38,6 +39,7 @@
 ## 4. Daily Treasury Par Yield Curve Rates URL 형식
 - BaseURL: `https://home.treasury.gov/resource-center/data-chart-center/interest-rates/pages/xml?data=daily_treasury_yield_curve&field_tdr_date_value=YYYY`
     - YYYY에 1990부터 최신연도까지 넣을 수 있다.
+    - `field_tdr_date_value`를 `field_tdr_date_value_month`로 바꾸면 YYYYmm(월단위)로 검색할 수 있다.
 
 ## 5. Daily Treasury Par Yield Curve Rates XML 형식
 
