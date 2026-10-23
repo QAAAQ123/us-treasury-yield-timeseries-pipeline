@@ -14,6 +14,7 @@ BASE_URL = (
     "data-chart-center/interest-rates/pages/xml"
 )
 
+
 # 1. 인자 유효성 검증
 # 2. month 존재 여부에 따라 파라미터 다르게 생성
 # 3. requests 요청
@@ -47,9 +48,9 @@ def fetch_response(year: int, month: int | None = None) -> bytes | None:
         )
     except requests.ReadTimeout as e:
         raise requests.ReadTimeout("HTTP Request Timeout error") from e
-    except requests.RequestException as e:
+    except requests.RequestException:
         raise requests.RequestException("HTTP Request error")
-    except Exception as e:
+    except Exception:
         raise
     else:
         logger.info(f"요청 성공: {year}년 {month}월")
@@ -94,13 +95,18 @@ def _setup_params(year: int, month: int | None) -> dict:
         "field_tdr_date_value_month": f"{year!s}{month:02d}",
     }
 
+
 def _validate_args(year: int, month: int | None) -> None:
-    """인자(year, month) 유효성 검증
-    1. year이 1990 이상
-    2. month가 1과 12사이
-    3. date(year, month,1)와 오늘 날짜 비교
-    4. year의 타입이 int
-    5. month의 타입이 int or None
+    """year와 month 인자의 유효성을 검증한다.
+
+    Args:
+        year: 조회할 연도. 1990년부터 현재 연도까지 허용한다.
+        month: 조회할 월. None 또는 1부터 12까지의 정수를 허용한다.
+
+    Raises:
+        TypeError: year가 int가 아니거나 month가 int 또는 None이 아닌 경우.
+        ValueError: year 또는 month가 허용 범위를 벗어나거나,
+            year와 month가 미래 날짜를 나타내는 경우.
     """
     if not isinstance(year, int):
         raise TypeError(f"year must be int, year: {type(year).__name__}")
