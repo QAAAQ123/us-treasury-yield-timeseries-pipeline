@@ -70,9 +70,18 @@ def fetch_response(year: int, month: int | None = None) -> bytes | None:
 
 
 def _setup_params(year: int, month: int | None) -> dict:
-    """URL 파라미터 생성
-    month == None then field_tdr_date_value
-    month != None then field_tdr_date_value_month
+    """미국 재무부 금리 데이터 요청에 사용할 URL 파라미터를 생성한다.
+
+    월이 지정되지 않으면 연도 기준 파라미터를 생성하고,
+    월이 지정되면 연월 기준 파라미터를 생성한다.
+    한 자리 월은 두 자리로 표현한다.
+
+    Args:
+        year: 조회할 연도.
+        month: 조회할 월. None이면 연도 기준으로 조회한다.
+
+    Returns:
+        미국 재무부 API 요청에 사용할 URL 파라미터 딕셔너리.
     """
     if month is None:
         return {
@@ -84,7 +93,6 @@ def _setup_params(year: int, month: int | None) -> dict:
         "data": "daily_treasury_yield_curve",
         "field_tdr_date_value_month": f"{year!s}{month:02d}",
     }
-
 
 def _validate_args(year: int, month: int | None) -> None:
     """인자(year, month) 유효성 검증
