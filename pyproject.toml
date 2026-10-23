@@ -25,6 +25,7 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 88
 target-version = "py311"
+exclude = ["*.ipynb", "notebooks/"]
 
 [tool.setuptools]
 py-modules = ["logger_config"]
