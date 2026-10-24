@@ -33,41 +33,31 @@ def fetch_response(year: int, month: int | None = None) -> bytes | None:
         None: 데이터가 없는 경우
     Raises:
         requests.ReadTimeout: HTTP 요청 타임아웃
-        requests.RequestException: HTTP 요청에 실패한 경우
+        requests.RequestException: HTTP 요청에 실패
+        requests.HTTPError: HTTP 응답 상태 코드가 4xx/5xx
     """
-
     _validate_args(year, month)
 
     params = _setup_params(year, month)
 
-    try:
-        response = requests.get(
-            BASE_URL,
-            params=params,
-            timeout=30,
-        )
-    except requests.ReadTimeout as e:
-        raise requests.ReadTimeout("HTTP Request Timeout error") from e
-    except requests.RequestException:
-        raise requests.RequestException("HTTP Request error")
-    except Exception:
-        raise
-    else:
-        logger.info(f"요청 성공: {year}년 {month}월")
+    response = requests.get(BASE_URL, params=params, timeout=30)
 
-        status_code = response.status_code
-        content = response.content
-        logger.info(f"상태 코드: {response.status_code}")
+    logger.info(f"응답 완료: {year}년 {month}월")
+    status_code = response.status_code
+    logger.info(f"상태 코드: {response.status_code}")
 
-        # 4.2 200 OK가 아닌 경우 => raise
-        if status_code != 200:
-            raise requests.HTTPError(f"status={status_code}", response=response)
+    response.raise_for_status()
+    content = response.content
 
-        # 4.3 200 OK이지만 데이터가 없는 경우 => None return
-        if not content:
-            return None
-        # 4.1 200 OK이고 데이터가 있는 경우 => bytes return
-        return content
+    # 4.2 200 OK가 아닌 경우 => raise
+    if status_code != 200:
+        raise requests.HTTPError(f"status={status_code}", response=response)
+
+    # 4.3 200 OK이지만 데이터가 없는 경우 => None return
+    if not content:
+        return None
+    # 4.1 200 OK이고 데이터가 있는 경우 => bytes return
+    return content
 
 
 def _setup_params(year: int, month: int | None) -> dict:
