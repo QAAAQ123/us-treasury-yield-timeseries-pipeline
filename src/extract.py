@@ -1,6 +1,6 @@
 """
 `https://home.treasury.gov/`에 Daily Treasury Par Yield Curve Rates를 요청해 XML을 추출하는 모듈
-책임: 네트워크 요청 및 원본 데이터 반환
+책임: 네트워크 요청 및 원본 데이터 추출
 """
 
 from datetime import date
@@ -23,18 +23,18 @@ BASE_URL = (
 # 4.2 200 OK가 아닌 경우 => raise
 # 4.3 200 OK이지만 데이터가 없는 경우 => None return
 def fetch_response(year: int, month: int | None = None) -> bytes | None:
-    """URL로 XML 데이터를 요청한다.
+    """URL로 XML 데이터를 요청한다. 상태 코드가 200일 때만 정상응답이다.
 
     Args:
         year(int): 요청할 년도
         month(int | None): 요청할 월(기본값은 None)
     Returns:
-        bytes: 응답 본문의 XML 데이터 원본
+        bytes: 응답 본문의 XML 데이터 원본(entry태그 존재 여부 미확인)
         None: 데이터가 없는 경우
     Raises:
         requests.ReadTimeout: HTTP 요청 타임아웃
         requests.RequestException: HTTP 요청에 실패
-        requests.HTTPError: HTTP 응답 상태 코드가 4xx/5xx
+        requests.HTTPError: HTTP 응답 상태 코드가 200 OK가 아닌 모든 경우
     """
     _validate_args(year, month)
 
@@ -42,22 +42,15 @@ def fetch_response(year: int, month: int | None = None) -> bytes | None:
 
     response = requests.get(BASE_URL, params=params, timeout=30)
 
-    logger.info(f"응답 완료: {year}년 {month}월")
-    status_code = response.status_code
-    logger.info(f"상태 코드: {response.status_code}")
+    logger.info(
+        "응답 완료: %s년 %s월 (상태 코드: %s)", year, month, response.status_code
+    )
 
-    response.raise_for_status()
-    content = response.content
+    if response.status_code != 200:
+        raise requests.HTTPError(f"status={response.status_code}", response=response)
 
-    # 4.2 200 OK가 아닌 경우 => raise
-    if status_code != 200:
-        raise requests.HTTPError(f"status={status_code}", response=response)
-
-    # 4.3 200 OK이지만 데이터가 없는 경우 => None return
-    if not content:
-        return None
-    # 4.1 200 OK이고 데이터가 있는 경우 => bytes return
-    return content
+    # Extract에서는 entry 존재 유무와 상관없이 추출만 진행한다.
+    return response.content or None
 
 
 def _setup_params(year: int, month: int | None) -> dict:
