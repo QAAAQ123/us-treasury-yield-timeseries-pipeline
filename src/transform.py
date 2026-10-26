@@ -4,11 +4,34 @@ XML 원천 데이터를 수집·파싱하고, 데이터 품질 검증을 거쳐 
 """
 
 import xml.etree.ElementTree as ET
+from datetime import date, datetime
+
+from logger_config import logger
 
 PROPERTIES_NAMESPACE = {
     "atom": "http://www.w3.org/2005/Atom",
     "m": "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata",
 }
+
+RECORD_KEY_MAP = {
+    "NEW_DATE": "date",
+    "BC_1MONTH": "yield_1m",
+    "BC_1_5MONTH": "yield_1_5m",
+    "BC_2MONTH": "yield_2m",
+    "BC_3MONTH": "yield_3m",
+    "BC_4MONTH": "yield_4m",
+    "BC_6MONTH": "yield_6m",
+    "BC_1YEAR": "yield_1y",
+    "BC_2YEAR": "yield_2y",
+    "BC_3YEAR": "yield_3y",
+    "BC_5YEAR": "yield_5y",
+    "BC_7YEAR": "yield_7y",
+    "BC_10YEAR": "yield_10y",
+    "BC_20YEAR": "yield_20y",
+    "BC_30YEAR": "yield_30y",
+}
+
+EXCLUDED_FIELDS = {"Id", "BC_30YEARDISPLAY"}
 
 
 def _parse_xml_records(xml_bytes: bytes) -> list[dict[str, str]]:
@@ -55,8 +78,35 @@ def _select_yield_fields(records: list[dict[str, str]]) -> list[dict[str, str]]:
     ]
 
 
-# def transform_types(records: list[dict]) -> list[dict]:
-#     """날짜와 수익률의 자료형을 변환한다."""
+def _transform_types(
+    records: list[dict[str, str]],
+) -> list[dict[str, float | date | None]]:
+    """날짜와 수익률의 자료형을 변환한다."""
+    new_records = []
+    for record in records:
+        new_record: dict[str, float | date | None] = {}
+        for key, value in record.items():
+            new_key = RECORD_KEY_MAP.get(key)
+            if new_key is None:
+                if key not in EXCLUDED_FIELDS:
+                    logger.warning("예상하지 못한 필드: %s", key)
+                continue
+
+            value = value.strip()
+            if new_key == "date":
+                if not value:
+                    raise ValueError("observation date is missing")
+                new_record[new_key] = datetime.fromisoformat(value).date()
+            else:
+                new_record[new_key] = (
+                    float(value) if value else None
+                )  # 금리 결측값은 None
+
+        if "date" not in new_record:
+            raise ValueError("record does not contain a valid observation date")
+
+        new_records.append(new_record)
+    return new_records
 
 
 # def validate_records(records: list[dict]) -> None:
