@@ -34,7 +34,7 @@ RECORD_KEY_MAP = {
 EXCLUDED_FIELDS = {"Id", "BC_30YEARDISPLAY"}
 
 
-def _parse_xml_records(xml_bytes: bytes) -> list[dict[str, str]]:
+def _parse_xml_records(xml_bytes: bytes) -> list[dict[str, str | None]]:
     """XML의 각 properties 요소를 딕셔너리로 변환한다.
 
     Args:
@@ -58,7 +58,7 @@ def _parse_xml_records(xml_bytes: bytes) -> list[dict[str, str]]:
     ]
 
 
-def _select_yield_fields(records: list[dict[str, str]]) -> list[dict[str, str]]:
+def _select_date_and_yield_fields(records: list[dict[str, str]]) -> list[dict[str, str]]:
     """각 레코드에서 날짜와 대상 금리 필드만 남긴다.
 
     Args:
@@ -94,7 +94,7 @@ def _transform_types(
 
             value = value.strip()
             if new_key == "date":
-                if not value:
+                if not value: # Not null 조건
                     raise ValueError("observation date is missing")
                 new_record[new_key] = datetime.fromisoformat(value).date()
             else:
