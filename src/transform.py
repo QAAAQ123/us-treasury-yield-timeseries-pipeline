@@ -79,38 +79,41 @@ def _select_date_and_yield_fields(records: list[dict[str, str]]) -> list[dict[st
 
 
 def _transform_types(
-    records: list[dict[str, str]],
+    original_records: list[dict[str, str]],
 ) -> list[dict[str, float | date | None]]:
-    """날짜와 수익률의 자료형을 변환한다."""
-    new_records = []
-    for record in records:
-        new_record: dict[str, float | date | None] = {}
+    """원본 필드명을 매핑하고 날짜와 금리의 자료형을 변환한다."""
+    transformed_records = []
+
+    for record in original_records:
+        transformed_record: dict[str, float | date | None] = {}
+
         for key, value in record.items():
             new_key = RECORD_KEY_MAP.get(key)
             if new_key is None:
-                if key not in EXCLUDED_FIELDS:
-                    logger.warning("예상하지 못한 필드: %s", key)
                 continue
 
-            value = value.strip()
+            value = (value or "").strip()
             if new_key == "date":
-                if not value: # Not null 조건
-                    raise ValueError("observation date is missing")
-                new_record[new_key] = datetime.fromisoformat(value).date()
+                transformed_record[new_key] = datetime.fromisoformat(value).date()
             else:
-                new_record[new_key] = (
+                transformed_record[new_key] = (
                     float(value) if value else None
                 )  # 금리 결측값은 None
 
-        if "date" not in new_record:
-            raise ValueError("record does not contain a valid observation date")
-
-        new_records.append(new_record)
-    return new_records
+        transformed_records.append(transformed_record)
+    return transformed_records
 
 
-# def validate_records(records: list[dict]) -> None:
-#     """데이터 정합성을 검증한다."""
+def _validate_records(records: list[dict[str, float | date | None]]) -> None:
+    """데이터 정합성을 검증한다.
+    
+    정상
+        1. 주말 및 휴장일
+        2. 사이트 주석에 명시한 특정 만기 미제공 기간
+    비정상
+        1. 정상 사유가 아닌 관측 데이터 또는 필수 필드(date) 누락
+        2. 날짜 중복, 날짜 오류, 수익율의 숫자 변환 실패 등
+    """
 
 
 # def handle_missing_data(records: list[dict]) -> list[dict]:
