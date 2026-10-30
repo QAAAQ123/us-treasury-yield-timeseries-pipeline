@@ -5,7 +5,6 @@ import pytest
 from transform import _parse_xml_records
 
 
-
 def test_valid_xml_returns_parsed_records():
     fake_xml = b"""<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom"

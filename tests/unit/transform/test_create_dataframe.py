@@ -1,9 +1,8 @@
-
 from datetime import date
 
 import pandas as pd
 
-from transform import create_dataframe, RECORD_KEY_MAP
+from transform import RECORD_KEY_MAP, create_dataframe
 
 
 def test_all_maturity_records_return_all_maturity_columns():

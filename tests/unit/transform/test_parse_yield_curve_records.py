@@ -1,4 +1,3 @@
-
 from datetime import date
 
 from transform import parse_yield_curve_records

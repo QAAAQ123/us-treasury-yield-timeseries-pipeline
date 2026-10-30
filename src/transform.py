@@ -3,9 +3,9 @@ XML 원천 데이터를 수집·파싱하고, 데이터 품질 검증을 거쳐 
 책임: XML 파싱, 데이터 검증 및 DataFrame 변환
 """
 
-from locale import normalize
 import xml.etree.ElementTree as ET
 from datetime import date, datetime
+
 import pandas as pd
 
 from logger_config import logger
@@ -36,7 +36,6 @@ RECORD_KEY_MAP = {
 EXCLUDED_FIELDS = {"Id", "BC_30YEARDISPLAY"}
 
 
-
 def _parse_xml_records(xml_bytes: bytes) -> list[dict[str, str | None]]:
     """XML의 각 properties 요소를 딕셔너리로 변환한다.
 
@@ -51,7 +50,7 @@ def _parse_xml_records(xml_bytes: bytes) -> list[dict[str, str | None]]:
 
     if not xml_bytes:
         return []
-    
+
     xml_root = ET.fromstring(xml_bytes)
 
     properties_list = xml_root.findall(
@@ -113,7 +112,9 @@ def _transform_types(
     return transformed_records
 
 
-def create_dataframe(normalized_records: list[dict[str, float | date | None]]) -> pd.DataFrame:
+def create_dataframe(
+    normalized_records: list[dict[str, float | date | None]],
+) -> pd.DataFrame:
     """레코드를 날짜 오름차순으로 정렬후 DataFrame으로 변환한다."""
 
     normalized_records.sort(key=lambda record: record["date"])
@@ -124,7 +125,7 @@ def create_dataframe(normalized_records: list[dict[str, float | date | None]]) -
     )
 
     return yield_dataframe
-    
+
 
 def parse_yield_curve_records(xml_bytes: bytes) -> list[dict[str, float | date | None]]:
     """Treasury 금리 XML을 파싱하여 날짜와 금리 필드를 추출하고 자료형을 변환한다."""
