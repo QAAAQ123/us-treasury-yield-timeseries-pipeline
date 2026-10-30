@@ -48,6 +48,10 @@ def _parse_xml_records(xml_bytes: bytes) -> list[dict[str, str | None]]:
     Raises:
         ET.ParseError: XML 형식이 올바르지 않은 경우.
     """
+
+    if not xml_bytes:
+        return []
+    
     xml_root = ET.fromstring(xml_bytes)
 
     properties_list = xml_root.findall(
@@ -61,7 +65,9 @@ def _parse_xml_records(xml_bytes: bytes) -> list[dict[str, str | None]]:
     ]
 
 
-def _select_date_and_yield_fields(records: list[dict[str, str]]) -> list[dict[str, str]]:
+def _select_date_and_yield_fields(
+    records: list[dict[str, str | None]],
+) -> list[dict[str, str | None]]:
     """각 레코드에서 날짜와 대상 금리 필드만 남긴다.
 
     Args:
@@ -82,7 +88,7 @@ def _select_date_and_yield_fields(records: list[dict[str, str]]) -> list[dict[st
 
 
 def _transform_types(
-    original_records: list[dict[str, str]],
+    original_records: list[dict[str, str | None]],
 ) -> list[dict[str, float | date | None]]:
     """원본 필드명을 매핑하고 날짜와 금리의 자료형을 변환한다."""
     transformed_records = []
@@ -120,6 +126,15 @@ def create_dataframe(normalized_records: list[dict[str, float | date | None]]) -
     return yield_dataframe
     
 
+def parse_yield_curve_records(xml_bytes: bytes) -> list[dict[str, float | date | None]]:
+    """Treasury 금리 XML을 파싱하여 날짜와 금리 필드를 추출하고 자료형을 변환한다."""
 
+    parsed_records = _parse_xml_records(xml_bytes)
 
+    if not parsed_records:
+        logger.info("추출한 데이터 없음: %s", parsed_records)
+        return []
 
+    selected_records = _select_date_and_yield_fields(parsed_records)
+
+    return _transform_types(selected_records)
