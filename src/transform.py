@@ -4,7 +4,7 @@ XML 원천 데이터를 수집·파싱하고, 데이터 품질 검증을 거쳐 
 """
 
 import xml.etree.ElementTree as ET
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from logger_config import logger
 
@@ -32,6 +32,7 @@ RECORD_KEY_MAP = {
 }
 
 EXCLUDED_FIELDS = {"Id", "BC_30YEARDISPLAY"}
+
 
 
 def _parse_xml_records(xml_bytes: bytes) -> list[dict[str, str | None]]:
@@ -104,20 +105,7 @@ def _transform_types(
     return transformed_records
 
 
-def _validate_records(records: list[dict[str, float | date | None]]) -> None:
-    """데이터 정합성을 검증한다.
-    
-    정상
-        1. 주말 및 휴장일
-        2. 사이트 주석에 명시한 특정 만기 미제공 기간
-    비정상
-        1. 정상 사유가 아닌 관측 데이터 또는 필수 필드(date) 누락
-        2. 날짜 중복, 날짜 오류, 수익율의 숫자 변환 실패 등
-    """
 
-
-# def handle_missing_data(records: list[dict]) -> list[dict]:
-#     """결측값 처리 정책을 적용한다."""
 
 
 # def create_dataframe(records: list[dict]) -> pd.DataFrame:
