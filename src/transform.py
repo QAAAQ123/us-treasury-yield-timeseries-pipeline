@@ -3,8 +3,10 @@ XML 원천 데이터를 수집·파싱하고, 데이터 품질 검증을 거쳐 
 책임: XML 파싱, 데이터 검증 및 DataFrame 변환
 """
 
+from locale import normalize
 import xml.etree.ElementTree as ET
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
+import pandas as pd
 
 from logger_config import logger
 
@@ -105,17 +107,19 @@ def _transform_types(
     return transformed_records
 
 
+def create_dataframe(normalized_records: list[dict[str, float | date | None]]) -> pd.DataFrame:
+    """레코드를 날짜 오름차순으로 정렬후 DataFrame으로 변환한다."""
+
+    normalized_records.sort(key=lambda record: record["date"])
+
+    yield_dataframe = pd.DataFrame(
+        normalized_records,
+        columns=list(RECORD_KEY_MAP.values()),
+    )
+
+    return yield_dataframe
+    
 
 
 
-# def create_dataframe(records: list[dict]) -> pd.DataFrame:
-#     """레코드를 DataFrame으로 변환하고 정렬한다."""
 
-
-# def transform_yield_curve(xml_bytes: bytes) -> pd.DataFrame:
-#     """XML 원본을 정제하여 DataFrame으로 변환한다."""
-#     records = collect_records(xml_bytes)
-#     records = transform_types(records)
-#     validate_records(records)
-#     records = handle_missing_data(records)
-#     return create_dataframe(records)
