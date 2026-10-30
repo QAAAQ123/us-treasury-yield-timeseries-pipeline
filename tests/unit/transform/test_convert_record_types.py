@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from transform import _transform_types
+from transform import _convert_record_types
 
 
 def test_one_records_return_typed_values():
@@ -13,7 +13,7 @@ def test_one_records_return_typed_values():
         }
     ]
 
-    result = _transform_types(records)
+    result = _convert_record_types(records)
 
     assert result == [
         {
@@ -35,7 +35,7 @@ def test_multiple_records_return_preserve_input_order():
         },
     ]
 
-    result = _transform_types(records)
+    result = _convert_record_types(records)
 
     assert result == [
         {
@@ -57,7 +57,7 @@ def test_whitespace_values_are_stripped_before_conversion():
         }
     ]
 
-    result = _transform_types(records)
+    result = _convert_record_types(records)
 
     assert result == [
         {
@@ -76,7 +76,7 @@ def test_empty_or_whitespace_yield_values_return_none(value):
         }
     ]
 
-    result = _transform_types(records)
+    result = _convert_record_types(records)
 
     assert result == [
         {
@@ -99,7 +99,7 @@ def test_invalid_date_values_raise_value_error(value):
     ]
 
     with pytest.raises(ValueError):
-        _transform_types(records)
+        _convert_record_types(records)
 
 
 def test_non_numeric_yield_values_raise_value_error():
@@ -111,7 +111,7 @@ def test_non_numeric_yield_values_raise_value_error():
     ]
 
     with pytest.raises(ValueError):
-        _transform_types(records)
+        _convert_record_types(records)
 
 
 def test_unmapped_fields_are_ignored():
@@ -125,7 +125,7 @@ def test_unmapped_fields_are_ignored():
         }
     ]
 
-    result = _transform_types(records)
+    result = _convert_record_types(records)
 
     assert result == [
         {
@@ -138,7 +138,7 @@ def test_unmapped_fields_are_ignored():
 def test_empty_records_return_empty_list():
     records = []
 
-    result = _transform_types(records)
+    result = _convert_record_types(records)
 
     assert result == []
 
@@ -150,7 +150,7 @@ def test_record_without_date_returns_record_without_date():
         }
     ]
 
-    result = _transform_types(records)
+    result = _convert_record_types(records)
 
     assert result == [
         {

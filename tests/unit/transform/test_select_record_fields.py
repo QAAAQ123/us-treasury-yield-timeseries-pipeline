@@ -1,4 +1,4 @@
-from transform import _select_date_and_yield_fields
+from transform import _select_record_fields
 
 
 def test_more_than_two_records_with_mixed_fields_returns_only_date_and_yield_fields():
@@ -29,7 +29,7 @@ def test_more_than_two_records_with_mixed_fields_returns_only_date_and_yield_fie
         {"NEW_DATE": "2026-10-27T00:00:00", "BC_10YEAR": "4.1"},
     ]
 
-    result = _select_date_and_yield_fields(fake_records)
+    result = _select_record_fields(fake_records)
 
     assert result == expected_records
 
@@ -51,7 +51,7 @@ def test_records_with_display_tag_returns_only_date_and_yield_fields():
         }
     ]
 
-    result = _select_date_and_yield_fields(fake_records)
+    result = _select_record_fields(fake_records)
 
     assert result == expected_records
 
@@ -59,6 +59,6 @@ def test_records_with_display_tag_returns_only_date_and_yield_fields():
 def test_empty_records_returns_empty_list():
     fake_records = []
 
-    result = _select_date_and_yield_fields(fake_records)
+    result = _select_record_fields(fake_records)
 
     assert result == []

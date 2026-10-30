@@ -2,7 +2,7 @@ from datetime import date
 
 import pandas as pd
 
-from transform import RECORD_KEY_MAP, create_dataframe
+from transform import RECORD_KEY_MAP, create_yield_curve_dataframe
 
 
 def test_all_maturity_records_return_all_maturity_columns():
@@ -26,7 +26,7 @@ def test_all_maturity_records_return_all_maturity_columns():
         }
     ]
 
-    result = create_dataframe(fake_records)
+    result = create_yield_curve_dataframe(fake_records)
 
     assert result.columns.tolist() == list(RECORD_KEY_MAP.values())
 
@@ -53,7 +53,7 @@ def test_unsorted_records_return_sorted_dataframe():
         },
     ]
 
-    result = create_dataframe(fake_records)
+    result = create_yield_curve_dataframe(fake_records)
 
     assert result["date"].tolist() == [
         date(2026, 10, 28),
@@ -80,7 +80,7 @@ def test_none_yield_values_return_dataframe_with_nan():
         },
     ]
 
-    result = create_dataframe(fake_records)
+    result = create_yield_curve_dataframe(fake_records)
 
     assert pd.isna(result.loc[0, "yield_1m"])
     assert pd.isna(result.loc[0, "yield_10y"])
@@ -99,7 +99,7 @@ def test_missing_dates_return_absent_in_dataframe():
         },
     ]
 
-    result = create_dataframe(fake_records)
+    result = create_yield_curve_dataframe(fake_records)
 
     assert result["date"].tolist() == [
         date(2026, 10, 28),
