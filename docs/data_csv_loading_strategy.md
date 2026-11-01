@@ -1,46 +1,47 @@
 # CSV로 데이터 적재 전략
 최초 작성일: 2026-10-31
+1차 수정일: 2026-11-01(DataFrame date의 DType 변경)
 
 ## 1. Dataframe 스키마 
 ```text
 Data columns (total 15 columns):
- #   Column      Non-Null Count  Dtype  
----  ------      --------------  -----  
- 0   date        30 non-null     object 
- 1   yield_1m    30 non-null     float64
- 2   yield_1_5m  30 non-null     float64
- 3   yield_2m    30 non-null     float64
- 4   yield_3m    30 non-null     float64
- 5   yield_4m    30 non-null     float64
- 6   yield_6m    30 non-null     float64
- 7   yield_1y    30 non-null     float64
- 8   yield_2y    30 non-null     float64
- 9   yield_3y    30 non-null     float64
- 10  yield_5y    30 non-null     float64
- 11  yield_7y    30 non-null     float64
- 12  yield_10y   30 non-null     float64
- 13  yield_20y   30 non-null     float64
- 14  yield_30y   30 non-null     float64
-dtypes: float64(14), object(1)
+ #   Column      Non-Null Count  Dtype         
+---  ------      --------------  -----         
+ 0   date        30 non-null     datetime64[ns]
+ 1   yield_1m    30 non-null     float64       
+ 2   yield_1_5m  30 non-null     float64       
+ 3   yield_2m    30 non-null     float64       
+ 4   yield_3m    30 non-null     float64       
+ 5   yield_4m    30 non-null     float64       
+ 6   yield_6m    30 non-null     float64       
+ 7   yield_1y    30 non-null     float64       
+ 8   yield_2y    30 non-null     float64       
+ 9   yield_3y    30 non-null     float64       
+ 10  yield_5y    30 non-null     float64       
+ 11  yield_7y    30 non-null     float64       
+ 12  yield_10y   30 non-null     float64       
+ 13  yield_20y   30 non-null     float64       
+ 14  yield_30y   30 non-null     float64       
+dtypes: datetime64[ns](1), float64(14)
 ```
 
 ## 2. 데이터 예시
 ```text
-date          2026-09-01
-yield_1m            3.85
-yield_1_5m          3.88
-yield_2m            3.89
-yield_3m            3.92
-yield_4m            3.97
-yield_6m             4.0
-yield_1y            4.18
-yield_2y            4.39
-yield_3y            4.46
-yield_5y            4.55
-yield_7y            4.66
-yield_10y           4.79
-yield_20y           5.27
-yield_30y           5.27
+date          2026-09-01 00:00:00
+yield_1m                     3.85
+yield_1_5m                   3.88
+yield_2m                     3.89
+yield_3m                     3.92
+yield_4m                     3.97
+yield_6m                      4.0
+yield_1y                     4.18
+yield_2y                     4.39
+yield_3y                     4.46
+yield_5y                     4.55
+yield_7y                     4.66
+yield_10y                    4.79
+yield_20y                    5.27
+yield_30y                    5.27
 Name: 0, dtype: object
 ```
 ## 3. 정책
@@ -83,11 +84,11 @@ Name: 0, dtype: object
 8. 날짜 기준 오름차순 정렬
 9.  일드 커브 및 일드 스프레드 CSV 각각 갱신
 
-## 5. 데이터 검증
-- date 컬럼 결측
+## 5. 데이터 검증 항목
+- date 결측 
+- 컬럼 구성
 - 날짜 중복
 - 날짜 오름차순
-- 컬럼 및 자료형 
 
 ## 6. 일드 스프레드 생성
 - 대상:
