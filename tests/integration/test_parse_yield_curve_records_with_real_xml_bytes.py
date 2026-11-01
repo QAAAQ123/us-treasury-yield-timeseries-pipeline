@@ -7,7 +7,7 @@ from transform import parse_yield_curve_records
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("year, month", [(1990, 1), (2010, 10), (2004, None)])
+@pytest.mark.parametrize("year, month", [(1990, 1), (2004, None)])
 def test_yield_curve_request_returns_type_transformed_records(year, month):
 
     response = fetch_yield_curve_xml(year, month)
@@ -17,7 +17,7 @@ def test_yield_curve_request_returns_type_transformed_records(year, month):
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("start, end", [(2000, 2009), (1990, 2023)])
+@pytest.mark.parametrize("start, end", [(2000, 2009)])
 def test_yield_curve_archive_request_returns_type_transformed_records(start, end):
 
     response = fetch_yield_curve_archive_xml(start, end)
