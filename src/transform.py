@@ -157,6 +157,17 @@ def create_yield_curve_dataframe(
         columns=list(RECORD_KEY_MAP.values()),
     )
 
+    yield_curve_dataframe["date"] = pd.to_datetime(
+        yield_curve_dataframe["date"]
+    ).astype("datetime64[ns]")
+    yield_curve_dataframe = yield_curve_dataframe.astype(
+        {
+            column: "float64"
+            for column in yield_curve_dataframe.columns
+            if column.startswith("yield_")
+        }
+    )
+
     if yield_curve_dataframe.empty:
         logger.warning("생성된 DataFrame이 비어 있음")
     else:

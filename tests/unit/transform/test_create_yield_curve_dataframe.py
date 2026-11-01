@@ -1,5 +1,6 @@
 from datetime import date
 
+import numpy as np
 import pandas as pd
 
 from transform import RECORD_KEY_MAP, create_yield_curve_dataframe
@@ -56,9 +57,9 @@ def test_unsorted_records_return_sorted_dataframe():
     result = create_yield_curve_dataframe(fake_records)
 
     assert result["date"].tolist() == [
-        date(2026, 10, 28),
-        date(2026, 10, 29),
-        date(2026, 10, 30),
+        pd.Timestamp("2026-10-28"),
+        pd.Timestamp("2026-10-29"),
+        pd.Timestamp("2026-10-30"),
     ]
 
     assert result["yield_1m"].tolist() == [3.7, 3.8, 3.9]
@@ -102,6 +103,35 @@ def test_missing_dates_return_absent_in_dataframe():
     result = create_yield_curve_dataframe(fake_records)
 
     assert result["date"].tolist() == [
-        date(2026, 10, 28),
-        date(2026, 10, 30),
+        pd.Timestamp("2026-10-28"),
+        pd.Timestamp("2026-10-30"),
     ]
+
+
+def test_dtype_is_datetime64_and_float64():
+    expected_dtypes = pd.Series(
+        {
+            column: (
+                np.dtype("datetime64[ns]") if column == "date" else np.dtype("float64")
+            )
+            for column in RECORD_KEY_MAP.values()
+        }
+    )
+
+    fake_records = [
+        {
+            "date": date(2026, 10, 28),
+            "yield_1m": 3.7,
+        },
+        {
+            "date": date(2026, 10, 30),
+            "yield_1m": 3.9,
+        },
+    ]
+
+    result = create_yield_curve_dataframe(fake_records)
+
+    pd.testing.assert_series_equal(
+        result.dtypes,
+        expected_dtypes,
+    )
