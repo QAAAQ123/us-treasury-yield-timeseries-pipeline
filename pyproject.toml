@@ -33,5 +33,5 @@ target-version = "py311"
 exclude = ["*.ipynb", "notebooks/", "*.md"]
 
 [tool.setuptools]
-py-modules = ["logger_config", "extract", "transform", "missing_data"]
+py-modules = ["logger_config", "extract", "transform", "missing_data", "visualize"]
 package-dir = {"" = "src"}
