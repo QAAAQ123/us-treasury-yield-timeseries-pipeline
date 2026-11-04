@@ -1,4 +1,6 @@
-from unittest.mock import patch #pytest-mock 대신 unittest.mock.patch 사용(사용 횟수 적음)
+from unittest.mock import (
+    patch,  # pytest-mock 대신 unittest.mock.patch 사용(사용 횟수 적음)
+)
 
 import pandas as pd
 import pytest
@@ -37,5 +39,3 @@ def test_initialize_csv_does_not_save_when_validation_fails():
 
     validate_spy.assert_called_once()
     save_spy.assert_not_called()
-
-

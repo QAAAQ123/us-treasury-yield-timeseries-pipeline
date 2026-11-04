@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pandas as pd
 import pytest
+
 import load_csv
 from load_csv import update_csv
 
@@ -17,9 +18,11 @@ def old_df():
 
 @pytest.fixture
 def spies(old_df):
-    with patch.object(load_csv, "_validate") as validate, \
-         patch.object(load_csv, "_save") as save, \
-         patch.object(load_csv.pd, "read_csv", return_value=old_df) as read_csv:
+    with (
+        patch.object(load_csv, "_validate") as validate,
+        patch.object(load_csv, "_save") as save,
+        patch.object(load_csv.pd, "read_csv", return_value=old_df) as read_csv,
+    ):
         yield validate, save, read_csv
 
 

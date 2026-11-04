@@ -59,7 +59,7 @@ def update_csv(new_curve_df: pd.DataFrame) -> None:
     _validate(new_curve_df)
 
     old_curve_df = pd.read_csv(CURVE_PATH, parse_dates=["date"], dtype=YIELD_DTYPES)
-    #merge 후 새로운 날짜가 추가되었는지 확인하는 헬퍼 필요(추가후 단위 테스트 추가)
+    # merge 후 새로운 날짜가 추가되었는지 확인하는 헬퍼 필요(추가후 단위 테스트 추가)
     merged_curve_df = (
         pd.concat([old_curve_df, new_curve_df])
         .drop_duplicates("date", keep="last")

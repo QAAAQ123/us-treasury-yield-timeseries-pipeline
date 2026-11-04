@@ -4,7 +4,7 @@ import pytest
 import load_csv
 from extract import fetch_yield_curve_archive_xml
 from load_csv import CURVE_DTYPE_MAP, initialize_csv
-from transform import parse_yield_curve_records, create_yield_curve_dataframe
+from transform import create_yield_curve_dataframe, parse_yield_curve_records
 
 
 @pytest.mark.integration
@@ -39,9 +39,7 @@ def test_save_initial_csv_with_real_data(tmp_path, monkeypatch):
         "spread_10y_2y",
         "spread_10y_3m",
     ]
-    pd.testing.assert_series_equal(
-        saved_spread_df["date"], saved_curve_df["date"]
-    )
+    pd.testing.assert_series_equal(saved_spread_df["date"], saved_curve_df["date"])
     pd.testing.assert_series_equal(
         saved_spread_df["spread_10y_2y"],
         (saved_curve_df["yield_10y"] - saved_curve_df["yield_2y"]).rename(
