@@ -1,3 +1,9 @@
+"""
+미국 국채 Yield Curve 및 Yield Spread 시각화 모듈.
+
+정제된 DataFrame을 입력받아 Plotly Figure 객체를 생성한다.
+"""
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
@@ -21,21 +27,27 @@ CURVE_LABELS = {
     "yield_20y": "20Y",
     "yield_30y": "30Y",
 }
-SPREAD_LABLES = {
+
+SPREAD_LABELS = {
     "date": "Date",
     "spread_10y_2y": "T10Y2Y",
     "spread_10y_3m": "T10Y3M",
 }
+
 VISIBLE_CURVE = ["3M", "2Y", "10Y"]
 
 
 def create_curve_chart(df: pd.DataFrame) -> go.Figure:
-    """Yield curve chart Figure를 생성한다.
+    """Yield Curve 차트를 생성한다.
+
+    전체 만기의 금리 데이터를 시각화하며, 기본적으로 3M, 2Y, 10Y
+    금리만 표시하고 나머지 만기는 범례를 통해 선택할 수 있도록 한다.
 
     Args:
-        df: 특정 기간의 Yield curve 데이터 프레임
+        df: date 및 전체 만기의 Yield 컬럼을 포함하는 DataFrame.
+
     Returns:
-        Yield curve를 그래프로 표현한 Figure 객체
+        Yield Curve를 표현하는 Plotly Figure 객체.
     """
     chart_df = df.rename(columns=CURVE_LABELS)
 
@@ -71,27 +83,36 @@ def create_curve_chart(df: pd.DataFrame) -> go.Figure:
 
     figure.update_xaxes(rangeslider_visible=True)
 
-    logger.info("Yield Curve 차트 생성 완료: %s까지", df.iloc[0]["date"])
+    logger.info(
+        "Yield Curve 차트 생성 완료 | 기간: %s ~ %s | 데이터: %d건",
+        df["date"].min(),
+        df["date"].max(),
+        len(df),
+    )
 
     return figure
 
 
 def create_spread_chart(df: pd.DataFrame) -> go.Figure:
-    """Yield spread chart Figure를 생성한다.
+    """Yield Spread 차트를 생성한다.
+
+    10년물과 2년물, 3개월물 금리 간 스프레드를 시각화하며,
+    양수와 음수를 구분할 수 있도록 0 기준선을 표시한다.
 
     Args:
-        df: 특정 기간의 Yield curve 데이터 프레임
+        df: date, spread_10y_2y, spread_10y_3m 컬럼을 포함하는 DataFrame.
+
     Returns:
-        Yield spread를 그래프로 표현한 Figure 객체
+        Yield Spread를 표현하는 Plotly Figure 객체.
     """
-    chart_df = df.rename(columns=SPREAD_LABLES)
+    chart_df = df.rename(columns=SPREAD_LABELS)
 
     figure = px.line(
         chart_df,
         x="Date",
         y=[
             chart_label
-            for df_label, chart_label in SPREAD_LABLES.items()
+            for df_label, chart_label in SPREAD_LABELS.items()
             if df_label.startswith("spread_")
         ],
         title="US Treasury Yield Spread",
@@ -107,6 +128,7 @@ def create_spread_chart(df: pd.DataFrame) -> go.Figure:
         hovermode="x unified",
         legend_title="Spread",
     )
+
     figure.add_hline(
         y=0,
         line_dash="dash",
@@ -116,6 +138,11 @@ def create_spread_chart(df: pd.DataFrame) -> go.Figure:
 
     figure.update_xaxes(rangeslider_visible=True)
 
-    logger.info("Yield Spread 차트 생성 완료: %s까지", df.iloc[0]["date"])
+    logger.info(
+        "Yield Spread 차트 생성 완료 | 기간: %s ~ %s | 데이터: %d건",
+        df["date"].min(),
+        df["date"].max(),
+        len(df),
+    )
 
     return figure
