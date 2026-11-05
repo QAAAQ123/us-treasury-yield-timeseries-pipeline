@@ -8,7 +8,7 @@
 2. archive 데이터를 파싱후 record(`list[dict]`)으로 변환: parse_yield_curve_records
 3. 2024년부터 현재 연도까지의 연도별 데이터 수집: fetch_yield_curve_xml
 4. 연도별 데이터를 record(`list[dict]`)으로 변환: parse_yield_curve_records
-5. archive와 연도별 records를 합침: Python list의 extend 사용
+5. archive와 연도별 records를 결합
 6. 결측 데이터 처리 및 데이터 정책 적용: handle_missing_data
 7. 데이터 처리를 마친 records를 DataFrame으로 변환: create_yield_curve_dataframe
 8. Yield Curve, Yield Spread CSV 저장: initialize_csv
