@@ -3,6 +3,7 @@
 최초 작성일: 2026-10-21
 1차 수정일: 2026-10-24
 2차 수정일: 2026-10-29/initial_data_policy.md 추가
+3차 수정일: 2026-11-05/pipeline_flow_detail.md 참고 추가, `10. 실행 및 배포` 수정
 
 ## 1. 전체 파이프라인 흐름
 
@@ -21,6 +22,7 @@
    ↓
 7. GitHub Pages 배포
 ```
+> 초기 및 증분 데이터 적재의 상세 실행 순서와 함수별 역할은 `pipeline_flow_detail.md` 참고
 
 ## 2. 추가 데이터 수집 파이프라인
 ### 데이터 수집 방법 결정
@@ -169,16 +171,28 @@
 - 적재 결과 저장
   - 결과를 CSV 형식으로 저장
   - CSV도 Github으로 관리
-## 10. 실행 및 배포	
-- GitHub Actions 실행 주기
-  - 매일 정해진 시간에 Actions 실행
-  - 수집, 정제, 검증, 갱신, 생성을 Actions에서 실행하여 서로 연결
-  - 데이터 증분 적재 작업 흐름은 순차 실행
-  - 기존 데이터 검증 작업은 병렬 실행
-- 실패 처리
-  - All or Nothing(실패하면 CSV에 덮어쓰지 않음)
-  - 오류 메시지는 Github Actions에서 기록
-  - 실패하면 시각화 생성 및 배포 진행하지 않음
-- GitHub Pages 배포
-  - CSV에 변경 사항이 있는 경우에만 배포 진행
-  - 파이프라인이 성공했을 때만 배포 진행
+## 10. 실행 및 배포(2026-11-05 수정)
+
+### GitHub Actions 실행 주기
+- 매일 1회, 뉴욕 시간 20:00 실행
+- 시간대: `America/New_York` (EST / EDT 자동 적용)
+- 수동 실행: `workflow_dispatch` 지원
+
+### Workflow 실행 단계
+1. Python 환경 설정 및 의존성 설치
+2. 증분 데이터 적재 (`run_incremental_pipeline()`)
+3. 데이터 시각화 및 HTML 생성 (`generate_visualizations()`)
+4. CSV 변경 사항 확인 및 Commit
+5. HTML Artifact 업로드 및 GitHub Pages 배포
+
+### 배포 정책
+- 파이프라인 실패 시 배포 중단
+- 정기 실행은 CSV 변경 시 배포
+- 최초 배포 및 수동 실행은 별도 허용
+- HTML 생성과 Pages 배포 분리
+
+### 배포 정책
+- 파이프라인 실패 시 배포하지 않음
+- CSV 변경 사항이 있을 때 정기 배포
+- 최초 배포 및 수동 실행은 별도 허용
+- HTML 생성과 Pages 배포를 분리
