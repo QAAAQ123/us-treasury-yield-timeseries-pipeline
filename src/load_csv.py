@@ -1,8 +1,12 @@
 """정제된 yield curve DataFrame을 CSV로 최초 적재 / 증분 적재한다."""
 
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pandas as pd
+
+from logger_config import logger
 
 CURVE_DTYPE_MAP = {
     "date": "datetime64[ns]",
@@ -59,12 +63,25 @@ def update_csv(new_curve_df: pd.DataFrame) -> None:
     _validate(new_curve_df)
 
     old_curve_df = pd.read_csv(CURVE_PATH, parse_dates=["date"], dtype=YIELD_DTYPES)
-    # merge 후 새로운 날짜가 추가되었는지 확인하는 헬퍼 필요(추가후 단위 테스트 추가)
-    merged_curve_df = (
-        pd.concat([old_curve_df, new_curve_df])
-        .drop_duplicates("date", keep="last")
-        .sort_values("date", ignore_index=True)
-    )
+
+    merged_curve_df, added_dates, changed_yields = _merge(old_curve_df, new_curve_df)
+
+    if added_dates.empty and changed_yields.empty:
+        day_type = (
+            "주말"
+            if datetime.now(ZoneInfo("America/New_York")).date().weekday() >= 5
+            else "주중"
+        )
+        logger.info("신규 데이터 없음. CSV 업데이트 건너뜀: %s", day_type)
+        return
+
+    if not added_dates.empty:
+        logger.info("추가된 날짜 %d건", len(added_dates))
+        logger.debug("추가된 날짜: %s", [d.date().isoformat() for d in added_dates])
+
+    if not changed_yields.empty:
+        logger.warning("수정된 날짜 %d건", len(changed_yields))
+        logger.debug("수정 내역:\n%s", changed_yields)
 
     _validate(merged_curve_df)
     _save(merged_curve_df)
@@ -119,3 +136,35 @@ def _to_spread(curve_df: pd.DataFrame) -> pd.DataFrame:
         spread_10y_2y=curve_df["yield_10y"] - curve_df["yield_2y"],
         spread_10y_3m=curve_df["yield_10y"] - curve_df["yield_3m"],
     )
+
+
+def _merge(
+    old_df: pd.DataFrame, new_df: pd.DataFrame
+) -> tuple[pd.DataFrame, pd.DatetimeIndex, pd.DataFrame]:
+    """기존 데이터와 신규 데이터를 날짜 기준으로 병합한다.
+
+    Args:
+        old_df: 기존 Yield Curve DataFrame.
+        new_df: 신규 Yield Curve DataFrame.
+    Returns:
+        병합된 DataFrame, 추가된 날짜(DatetimeIndex), 값이 바뀐 행의 compare 결과.
+    """
+
+    # date 기준 비교를 위한 date index 설정
+    indexed_old_df = old_df.set_index("date")
+    indexed_new_df = new_df.set_index("date")
+
+    added_dates = indexed_new_df.index.difference(indexed_old_df.index)
+    common_dates = indexed_new_df.index.intersection(indexed_old_df.index)
+
+    changed_yields = indexed_new_df.loc[common_dates].compare(
+        indexed_old_df.loc[common_dates]
+    )
+
+    merged_df = (
+        pd.concat([old_df, new_df])
+        .drop_duplicates("date", keep="last")
+        .sort_values("date", ignore_index=True)
+    )
+
+    return merged_df, added_dates, changed_yields
