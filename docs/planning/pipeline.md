@@ -4,6 +4,7 @@
 1차 수정일: 2026-10-24
 2차 수정일: 2026-10-29/initial_data_policy.md 추가
 3차 수정일: 2026-11-05/pipeline_flow_detail.md 참고 추가, `10. 실행 및 배포` 수정
+4차 수정일: 2026-11-16/배포 전략 수정
 
 ## 1. 전체 파이프라인 흐름
 
@@ -183,16 +184,10 @@
 2. 증분 데이터 적재 (`run_incremental_pipeline()`)
 3. 데이터 시각화 및 HTML 생성 (`generate_visualizations()`)
 4. CSV 변경 사항 확인 및 Commit
-5. HTML Artifact 업로드 및 GitHub Pages 배포
+5. CSV를 사용하여 GitHub Pages 배포
 
 ### 배포 정책
 - 파이프라인 실패 시 배포 중단
 - 정기 실행은 CSV 변경 시 배포
 - 최초 배포 및 수동 실행은 별도 허용
 - HTML 생성과 Pages 배포 분리
-
-### 배포 정책
-- 파이프라인 실패 시 배포하지 않음
-- CSV 변경 사항이 있을 때 정기 배포
-- 최초 배포 및 수동 실행은 별도 허용
-- HTML 생성과 Pages 배포를 분리

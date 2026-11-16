@@ -2,7 +2,7 @@
 
 - `run_initial_pipeline`: Treasury API를 호출하여 XML 데이터를 수집하고 CSV에 초기 적재
 - `run_incremental_pipeline`: Treasury API를 호출하여 XML 데이터를 수집하고 CSV에 증분 적재
-- `generate_visualizations`: CSV를 DataFrame으로 읽어 Plotly Figure를 생성하고 HTML로 저장
+- `generate_visualizations`: CSV를 DataFrame으로 읽어 Plotly Figure를 생성하고 (curve HTML, spread HTML) 튜플로 반환
 
 ## 2. 문제 상황: 증분 데이터가 없는 경우
 
@@ -83,7 +83,7 @@
 - Curve와 Spread의 `date` 컬럼이 완전히 일치한다.
 - Spread 계산 결과가 `yield_10y - yield_2y`, `yield_10y - yield_3m`과 허용 오차 내에서 일치한다.
 - 결측 데이터 정책이 적용되어 있다. (정책에 따른 결측/보정 결과를 기대값과 비교)
-- 시각화 HTML 2종(`curve_html`, `spread_html`)이 생성되고 크기가 0보다 크다.
+- `generate_visualizations`가 반환한 HTML 문자열 2종(`curve_html`, `spread_html`)이 비어 있지 않고 Plotly HTML이다.
 - 생성된 HTML에 `<html` 태그와 `plotly` 문자열이 포함되어 있다.
 - 생성된 Plotly Figure에 데이터 trace가 1개 이상 존재한다.
 
