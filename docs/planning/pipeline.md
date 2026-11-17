@@ -130,7 +130,7 @@
 
 ## 7. 데이터 변환 규칙
 - 날짜: XML의 날짜는 ISO 형식(`YYYY-mm-ddT00:00:00`)이며 `datetime.fromisoformat`으로 변환한다.
-  - 금리: 소수점 하위 자리까지 신경쓸 정도로 정확도가 필요로 하지 않다. => 단순 Python 실수와 RDBMS FLOAT 타입
+  - 금리: 소수점 하위 자리까지 신경쓸 정도로 정확도가 필요로 하지 않다. => 단순 Python 실수
   - 결측치 처리: Python-None, CSV-빈 문자열
 
 

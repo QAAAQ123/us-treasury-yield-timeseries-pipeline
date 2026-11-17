@@ -2,6 +2,14 @@
 
 미국 국채의 만기별 수익률 시계열을 수집·정제하고, 이를 바탕으로 10Y–2Y 및 10Y–3M 일드 스프레드를 계산하여 일드 시계열과 스프레드 시계열을 함께 시각화하는 데이터 파이프라인 프로젝트입니다.
 
+## 시각화 결과 보기
+
+GitHub Pages에서 인터랙티브 그래프를 확인할 수 있습니다.
+
+- 대시보드: https://qaaaq123.github.io/us-treasury-yield-timeseries-pipeline/
+- 만기별 일드 시계열: https://qaaaq123.github.io/us-treasury-yield-timeseries-pipeline/yield_curve.html
+- 10Y–2Y, 10Y–3M 스프레드 시계열: https://qaaaq123.github.io/us-treasury-yield-timeseries-pipeline/yield_spread.html
+
 ## 목적
 
 본 프로젝트는 미국 국채의 만기별 수익률 시계열을 자동으로 수집·정제하고, 데이터 품질을 검증한 뒤 일드(Yield)와 10Y–2Y 및 10Y–3M 일드 스프레드(Yield Spread)를 계산하여 각각 시계열 그래프로 시각화하는 배치 데이터 파이프라인을 구축하는 것을 목표로 합니다.
@@ -66,15 +74,15 @@ Interactive Visualization (Spread Timeseries)
 
 ### 1. 데이터 수집
 
-미국 재무부에서 제공하는 데이터를 활용해 필요한 만기의 국채 금리를 수집합니다.
+미국 재무부에서 제공하는 XML 데이터를 활용해 만기별 국채 금리를 수집합니다. 최초 1회 전체 데이터를 수집해 CSV로 적재하고, 이후에는 당월 신규 데이터만 증분 적재합니다.
 
 ### 2. 데이터 정제 및 검증
 
-날짜 형식, 결측치, 중복 데이터 및 금리 값의 유효성을 검증합니다. 필요에 따라 FRED에서 제공하는 공식 스프레드 시계열과 계산 결과를 비교해 정합성을 확인합니다.
+날짜 형식, 결측치, 중복 데이터 및 금리 값의 유효성을 검증하고, 휴장일과 만기별 결측 데이터를 정책에 따라 처리합니다.
 
 ### 3. 스프레드 계산
 
-정제된 만기별 일드 시계열을 바탕으로 10Y–2Y 및 10Y–3M 스프레드를 계산합니다.
+정제된 만기별 일드 시계열을 바탕으로 10Y–2Y 및 10Y–3M 스프레드를 계산하여 CSV(`data/mart/`)로 저장합니다.
 
 ### 4. 시각화
 
@@ -84,7 +92,11 @@ Plotly를 활용해 다음 두 가지 인터랙티브 시계열 그래프를 생
 
 ### 5. 자동화 및 배포
 
-GitHub Actions를 이용해 데이터 수집, 처리, 시각화 결과물 생성을 정기적으로 실행하고, GitHub Pages를 통해 결과를 공개하는 것을 목표로 합니다.
+GitHub Actions를 이용해 데이터 수집과 배포를 자동화하고, GitHub Pages를 통해 결과를 공개합니다.
+
+- Collect: 매일 뉴욕 시간 20시에 증분 데이터를 수집하여 CSV가 변경되면 커밋하고 Deploy를 실행합니다.
+- Deploy: CSV를 바탕으로 Plotly HTML을 생성하여 GitHub Pages에 배포합니다.
+- CI / E2E: Pull Request에서 lint, unit·integration 테스트를 실행하고, E2E 테스트는 매주 수요일에 실행합니다.
 
 ## 시작하기
 
@@ -121,9 +133,11 @@ python -m pip install -e ".[dev]"
 ### 4. 테스트 및 코드 검사
 
 ```bash
-pytest
-ruff check .
-ruff format --check .
+pytest                # unit 테스트 
+pytest -m integration # integration 테스트
+pytest -m e2e         # E2E 테스트
+ruff check .          # 린팅
+ruff format --check . # 포맷팅
 ```
 
 ## 데이터 출처
