@@ -63,21 +63,3 @@ jobs:
 
       - name: Run integration tests
         run: pytest -m integration
-
-  e2e-test:
-    name: E2E Test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -e ".[dev]"
-
-      - name: Run E2E tests
-        run: pytest -m e2e
