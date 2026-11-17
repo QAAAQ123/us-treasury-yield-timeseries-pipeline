@@ -11,6 +11,7 @@
 | Ruff | 코드 검사 및 포맷팅 |
 | GitHub Actions | 파이프라인 정기 실행 및 자동화 |
 | GitHub Pages | 시각화 결과물 배포 |
+| Requests-Mock | Requests 모킹 |
 
 
 ## 상세 사용 이유

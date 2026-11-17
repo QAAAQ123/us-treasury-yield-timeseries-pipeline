@@ -43,6 +43,10 @@
 #### 결과 값
 - 레코드 제거
 
+#### 현재 구현(2026-11-17 확인)
+-  날짜 변환 실패 시 레코드를 제거하지 않고 `ValueError`로 파이프라인을 중단한다.
+- (`src/transform.py::_convert_record_types`, `tests/unit/transform/test_convert_record_types.py::test_invalid_date_values_raise_value_error`)
+
 ### 2.2. 날짜 중복
 #### 조건
 - 같은 날짜가 두 개 이상의 레코드로 존재한다.
@@ -66,3 +70,7 @@
 - 원본 문자열을 로그로 남긴다.
 #### 결과 값
 - None
+
+##### 현재 구현(2026-11-17 확인): 해당 값을 None으로 두지 않고, 레코드를 로그로 남긴 뒤 `ValueError`로 파이프라인을 중단한다.
+- 빈 문자열/공백만 None으로 처리한다.
+- (`src/transform.py::_convert_record_types`, `tests/unit/transform/test_convert_record_types.py::test_non_numeric_yield_values_raise_value_error`)

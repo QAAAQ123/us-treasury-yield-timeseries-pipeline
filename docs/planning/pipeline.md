@@ -5,6 +5,7 @@
 2차 수정일: 2026-10-29/initial_data_policy.md 추가
 3차 수정일: 2026-11-05/pipeline_flow_detail.md 참고 추가, `10. 실행 및 배포` 수정
 4차 수정일: 2026-11-16/배포 전략 수정
+5차 수정일: 2026-11-17/코드와 다른 부분에 `현재 구현`, `미구현` 주석 추가
 
 ## 1. 전체 파이프라인 흐름
 
@@ -113,7 +114,7 @@
 ## 6. 스키마 구조
 - date: date, Not null
 - yield_1m: FLOAT
-- yield_1_5_m: FLOAT
+- yield_1_5m: FLOAT
 - yield_2m: FLOAT
 - yield_3m: FLOAT
 - yield_4m: FLOAT
@@ -128,9 +129,10 @@
 - yield_30y: FLOAT
 
 ## 7. 데이터 변환 규칙
-- 날짜: mm/dd/YYYY => YYYY-mm-dd
+- 날짜: XML의 날짜는 ISO 형식(`YYYY-mm-ddT00:00:00`)이며 `datetime.fromisoformat`으로 변환한다.
   - 금리: 소수점 하위 자리까지 신경쓸 정도로 정확도가 필요로 하지 않다. => 단순 Python 실수와 RDBMS FLOAT 타입
-  - 결측치 처리: Python-None, RDBMS-NULL
+  - 결측치 처리: Python-None, CSV-빈 문자열
+
 
 ## 8. 데이터 품질 검증
 > initial_data_policy.md에 `초기 데이터 적재` 정책 추가
@@ -154,6 +156,9 @@
     - 숫자 형 반환 여부: 숫자형으로 변환 가능
     - 금리 값의 범위 확인: 비정상(기준 확립 필요)적으로 큰 경우 경고 발생시키고 원본 확인
 
+- 현재 구현: 날짜 변환 실패, 금리 숫자 변환 실패, 중복·역순 날짜는 모두 `ValueError`로 파이프라인을 중단한다(`feature/transform_data.md` 참고).
+- 미구현: 재수집·재시도 정책, 금리 값 범위 검증
+
 ## 9. 증분 적재 전략
 - 적재 방식(2026-10-24 변경)
   - 초기 적재
@@ -172,6 +177,10 @@
 - 적재 결과 저장
   - 결과를 CSV 형식으로 저장
   - CSV도 Github으로 관리
+
+- 현재 구현: 초기 적재는 1990~2023년 통합 아카이브 + 2024년~현재 연도 **연도별** XML을 사용한다(현재 연도도 월별이 아닌 연도별 조회).
+- 증분 적재는 현재 연월(America/New_York 기준)의 월별 XML만 조회한다.
+- 미구현: 최근 N개월 재수집을 통한 과거 데이터 검증
 ## 10. 실행 및 배포(2026-11-05 수정)
 
 ### GitHub Actions 실행 주기
@@ -191,3 +200,7 @@
 - 정기 실행은 CSV 변경 시 배포
 - 최초 배포 및 수동 실행은 별도 허용
 - HTML 생성과 Pages 배포 분리
+
+- 현재 구현(2026-11-16 배포 전략 수정 반영): 수집(`collect.yaml`)과 HTML 생성·배포(`deploy.yaml`)가 분리되어 있다.
+- collect는 CSV 변경을 커밋한 경우에만 deploy를 실행하고, deploy는 수동 실행 시 CSV 변경 여부와 무관하게 배포한다.
+- 자세한 내용은 `feature/deploy_strategy.md` 참고

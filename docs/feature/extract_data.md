@@ -1,6 +1,7 @@
 # 미국 재무부 Daily Treasury Par Yield Curve Rates 추출 방법
 최초 작성일: 2026-10-21
 1차 수정일: 2026-10-24
+2차 수정일: 2026-11-17/코드 기준 동기화
 
 ## 1. Daily Treasury Par Yield Curve Rates 데이터 제공 기간
 #### CSV 및 유저 친화적 데이터
@@ -85,15 +86,15 @@ https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily
 
 https://home.treasury.gov/resource-center/data-chart-center/interest-rates/daily-treasury-rate-archives/par-yield-curve-rates-1990-2023.xml
 ```
-현재 확인된 아카이브 기간은 다음과 같다.
+현재 확인된 아카이브 기간은 다음과 같다(`src/extract.py`).
 ```python
-ARCHIVE_PERIODS = {
+SUPPORTED_ARCHIVE_RANGES = (
     (1990, 1999),
     (2000, 2009),
     (2010, 2019),
     (2020, 2023),
     (1990, 2023),
-}
+)
 ```
 
 ## 5. Daily Treasury Par Yield Curve Rates XML 형식
@@ -212,24 +213,26 @@ for entry in root.findall(".//{*}entry"):
 
 | 함수 | 책임 |
 |---|---|
-| `fetch_archive(start_year, end_year)` | 지정된 기간의 정적 아카이브 XML 요청 |
-| `fetch_response(year, month=None)` | 기존 XML 엔드포인트에서 연도별 또는 월별 데이터 요청 |
-| `_request_xml(url, params=None)` | HTTP 요청, 상태 코드 검사, 예외 처리 및 원본 응답 반환 |
-| `_validate_args(year, month)` | 연도 및 월 인자 유효성 검증 |
+| `fetch_yield_curve_archive_xml(start_year, end_year)` | 지정된 기간의 정적 아카이브 XML 요청 |
+| `fetch_yield_curve_xml(year, month=None)` | 기존 XML 엔드포인트에서 연도별 또는 월별 데이터 요청 |
+| `_get_response(url, params=None)` | GET 요청(timeout 30초) 후 원본 Response 반환 |
+| `_validate_archive_args(start_year, end_year)` | 아카이브 연도 인자 타입 및 지원 구간(`SUPPORTED_ARCHIVE_RANGES`) 검증 |
+| `_validate_args(year, month)` | 연도(1990~현재 연도) 및 월(1~12, 미래 연월 불가) 인자 유효성 검증 |
 | `_setup_params(year, month)` | 연도별·월별 XML 엔드포인트 요청 파라미터 생성 |
 
-`_request_xml()`은 두 요청 함수가 공통으로 사용하는 내부 함수다. 이를 활용하면 HTTP 요청 및 예외 처리 로직의 중복을 줄일 수 있다.
+`_get_response()`는 두 요청 함수가 공통으로 사용하는 내부 함수다. 상태 코드 검사는 각 요청 함수에서 수행하며, 200이 아니면 `requests.HTTPError`를 발생시킨다.
+
+두 요청 함수는 응답 본문(`bytes`)을 그대로 반환하고, 본문이 비어 있으면 `None`을 반환한다. 재시도 로직은 없다.
 
 Extract 단계에서는 XML을 파싱하거나 CSV로 저장하지 않고, 원본 응답을 반환하는 책임만 유지한다.
 
 #### 2. 초기 적재(Initial Load)
 
-- `fetch_archive(1990, 2023)`을 이용해 통합 아카이브 XML을 요청한다.
+- `fetch_yield_curve_archive_xml(1990, 2023)`을 이용해 통합 아카이브 XML을 요청한다.
+- 2024년부터 현재 연도까지는 `fetch_yield_curve_xml(year)`로 연도별 XML을 요청한다(현재 연도 포함).
 - 응답의 정상 여부를 확인한 후 Transform 단계에서 XML 파싱 및 데이터 정합성 검증을 수행한다.
-- 통합 아카이브의 데이터 범위와 필드 구조를 검증하고, 필요한 경우 기간별 아카이브를 대안으로 사용한다.
 
 #### 3. 증분 적재(Incremental Load)
 
-- 2024년 이후 데이터는 기존 `fetch_response(year, month)`를 사용한다.
-- 완료된 연도는 연도별 조회를 이용하고, 당연도는 월별 조회를 이용하는 방식을 기본으로 한다.
+- `fetch_yield_curve_xml(current_year, current_month)`로 현재 연월(America/New_York 기준)의 월별 XML만 요청한다.
 - 수집한 데이터는 Transform 단계에서 정제 및 검증한 후 Load 단계에서 기존 CSV 데이터와 병합하고 중복을 제거한다.

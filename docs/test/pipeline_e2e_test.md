@@ -1,8 +1,13 @@
+# 파이프라인 E2E 테스트 전략
+최초 작성일: 2026-11-15
+1차 수정일: 2026-11-17/코드 기준 동기화
+
 ## 1. 검증 대상 (`pipeline.py`)
 
 - `run_initial_pipeline`: Treasury API를 호출하여 XML 데이터를 수집하고 CSV에 초기 적재
 - `run_incremental_pipeline`: Treasury API를 호출하여 XML 데이터를 수집하고 CSV에 증분 적재
-- `generate_visualizations`: CSV를 DataFrame으로 읽어 Plotly Figure를 생성하고 (curve HTML, spread HTML) 튜플로 반환
+
+> `generate_visualizations`는 E2E 대상이 아니다. HTML 유효성은 `deploy.yaml`의 검증 step과 `tests/unit/visualize/`에서 확인한다.
 
 ## 2. 문제 상황: 증분 데이터가 없는 경우
 
@@ -59,21 +64,23 @@
 - E2E 테스트는 External API 기반으로 수행한다
 - 초기 데이터 적재 후, 현재 연월에 해당하는 레코드를 CSV에서 의도적으로 제거하고 증분 파이프라인을 실행하여, API에서 해당 날짜의 데이터가 다시 수집되어 CSV에 정상 추가되는지 검증한다. 
 - 삭제 대상 날짜는 고정하지 않고 CSV에 존재하는 현재 연월 내 날짜 중에서 동적으로 선택한다. (주말·공휴일, 월초 데이터 미발표 상황 대응) 
-- 기존 날짜 값 갱신, 신규 날짜 추가 등 E2E로 재현할 수 없는 시나리오는 Fixture XML 기반 테스트(별도 테스트 스위트)에서 보완한다. 두 방식은 대체 관계가 아니라 검증 범위가 다른 보완 관계이다.
+- 기존 날짜 값 갱신, 신규 날짜 추가 등 E2E로 재현할 수 없는 시나리오는 Fixture XML 대신 DataFrame 기반 단위 테스트에서 보완한다. 두 방식은 대체 관계가 아니라 검증 범위가 다른 보완 관계이다.
+  - `tests/unit/load_csv/test_merge.py`: 값 변경 감지, 신규 날짜 추가
+  - `tests/unit/load_csv/test_update_csv.py`: 기존 날짜 덮어쓰기, 신규 날짜 병합·정렬, 검증 실패 시 저장 안 함
 
 
 ## 5. 테스트 시나리오
 
 ### 5.1 초기 적재 E2E 테스트
+> `tests/e2e/test_run_initial_pipeline_e2e.py`
 
-**목적**: `run_initial_pipeline`과 `generate_visualizations`가 실제 API 데이터로 끝까지 정상 동작하는지 검증한다.
+**목적**: `run_initial_pipeline`이 실제 API 데이터로 끝까지 정상 동작하는지 검증한다.
 
 **사전 조건**
-- 테스트 전용 임시 경로(`tmp_path`)를 CSV 및 HTML 출력 경로로 사용한다. 
+- 테스트 전용 임시 경로(`tmp_path`)를 CSV 출력 경로로 사용한다(`load_csv`, `pipeline`의 `CURVE_PATH`, `SPREAD_PATH`를 monkeypatch).
 
 **절차**
 1. `run_initial_pipeline` 실행
-2. `generate_visualizations` 실행
 
 **검증 항목**
 - CSV 파일 2종(`curve_csv`, `spread_csv`)이 생성되고 크기가 0보다 크며, 데이터 행이 비어 있지 않다.
@@ -82,12 +89,13 @@
 - 숫자 컬럼(Curve의 각 금리, Spread의 두 스프레드)이 numeric 타입이다.
 - Curve와 Spread의 `date` 컬럼이 완전히 일치한다.
 - Spread 계산 결과가 `yield_10y - yield_2y`, `yield_10y - yield_3m`과 허용 오차 내에서 일치한다.
-- 결측 데이터 정책이 적용되어 있다. (정책에 따른 결측/보정 결과를 기대값과 비교)
-- `generate_visualizations`가 반환한 HTML 문자열 2종(`curve_html`, `spread_html`)이 비어 있지 않고 Plotly HTML이다.
-- 생성된 HTML에 `<html` 태그와 `plotly` 문자열이 포함되어 있다.
-- 생성된 Plotly Figure에 데이터 trace가 1개 이상 존재한다.
+- 만기별 제공 기간 정책이 적용되어 있다. 다음 날짜의 해당 만기 값이 결측이다.
+  - `yield_1_5m`: 2025-02-17, `yield_2m`: 2018-10-15, `yield_4m`: 2022-10-18
+  - `yield_20y`: 1992-01-02, `yield_30y`: 2004-01-02
+- 달력 공백 날짜가 직전 관측값으로 채워져 있다. (2024-01-06의 값이 2024-01-05와 동일)
 
 ### 5.2 증분 적재 E2E 테스트
+> `tests/e2e/test_incremental_pipeline.py`
 
 **목적**: 신규 발표가 없는 시점에도 증분 적재의 "누락 데이터 수집 및 CSV 병합" 동작을 검증한다.
 
@@ -116,5 +124,6 @@
 ## 6. 실행 정책
 
 - E2E 및 외부 API 테스트는 기본 테스트 실행에서 제외하고, 마커로 명시적으로 실행한다.
+  - `pyproject.toml`: `addopts = "-m 'not integration and not e2e'"`, 실행 시 `pytest -m e2e`
 - 모든 E2E 테스트는 임시 경로에서 실행하여 운영 CSV에 영향을 주지 않는다.
-- 단위, 통합 테스트와 별개로 매주 수요일 9시에 E2E 테스트만 실시한다.
+- 단위, 통합 테스트와 별개로 매주 수요일 09:00 KST(00:00 UTC)에 E2E 테스트만 실시한다(`.github/workflows/e2e.yaml`).
