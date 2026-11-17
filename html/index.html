@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="미국 국채 수익률 곡선과 수익률 스프레드 시각화 대시보드">
+  <title>U.S. Treasury Yield Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #182230;
+      background: #f5f7fa;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 32px 20px;
+    }
+
+    main {
+      width: 100%;
+      max-width: 760px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: #64748b;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      letter-spacing: -0.04em;
+      line-height: 1.15;
+    }
+
+    .intro {
+      margin: 16px 0 32px;
+      color: #64748b;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .links {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .link-card {
+      display: flex;
+      min-height: 176px;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      background: #ffffff;
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 160ms ease, transform 160ms ease,
+        box-shadow 160ms ease;
+    }
+
+    .link-card:hover {
+      transform: translateY(-3px);
+      border-color: #94a3b8;
+      box-shadow: 0 12px 28px rgb(15 23 42 / 7%);
+    }
+
+    .link-card:focus-visible {
+      outline: 3px solid #64748b;
+      outline-offset: 3px;
+    }
+
+    .card-label {
+      color: #64748b;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .card-title {
+      margin: 12px 0 8px;
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .card-description {
+      margin: 0;
+      color: #64748b;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .card-arrow {
+      align-self: flex-end;
+      margin-top: 18px;
+      color: #334155;
+      font-size: 1.2rem;
+    }
+
+    footer {
+      margin-top: 28px;
+      color: #94a3b8;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 560px) {
+      .links {
+        grid-template-columns: 1fr;
+      }
+
+      .link-card {
+        min-height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">U.S. Treasury · Data Visualization</p>
+    <h1>Treasury Yield Dashboard</h1>
+    <p class="intro">
+      미국 국채 수익률 데이터를 바탕으로 금리 곡선과 만기별 수익률 스프레드를 확인할 수 있습니다.
+    </p>
+
+    <nav class="links" aria-label="차트 선택">
+      <a class="link-card" href="yield_spread.html">
+        <div>
+          <span class="card-label">SPREAD</span>
+          <h2 class="card-title">일드 스프레드</h2>
+          <p class="card-description">10년물과 2년물·3개월물 간 금리 차이</p>
+        </div>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </a>
+
+      <a class="link-card" href="yield_curve.html">
+        <div>
+          <span class="card-label">YIELD CURVE</span>
+          <h2 class="card-title">일드 커브</h2>
+          <p class="card-description">만기별 미국 국채 수익률 곡선</p>
+        </div>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </a>
+    </nav>
+
+    <footer></footer>
+  </main>
+</body>
+</html>

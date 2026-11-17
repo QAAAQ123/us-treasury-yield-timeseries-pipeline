@@ -22,9 +22,10 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-m 'not integration'"
+addopts = "-m 'not integration and not e2e'"
 markers = [
-    "integration: tests that call the real external API"
+    "integration: tests that call the real external API",
+    "e2e: tests verifying the complete pipeline",
 ]
 
 [tool.ruff]
@@ -33,5 +34,5 @@ target-version = "py311"
 exclude = ["*.ipynb", "notebooks/", "*.md"]
 
 [tool.setuptools]
-py-modules = ["logger_config", "extract", "transform", "missing_data", "visualize"]
+py-modules = ["logger_config", "extract", "transform", "missing_data", "visualize", "load_csv", "pipeline"]
 package-dir = {"" = "src"}
