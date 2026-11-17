@@ -1,0 +1,78 @@
+name: Deploy to GitHub Pages
+
+on:
+  # collect workflow가 CSV 변경을 커밋한 뒤 실행하거나 수동으로 실행한다
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 30
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Generate and validate HTML
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          from pipeline import generate_visualizations
+
+          curve_html, spread_html = generate_visualizations()
+
+          outputs = {
+              "yield_curve.html": curve_html,
+              "yield_spread.html": spread_html,
+          }
+
+          for name, content in outputs.items():
+              if not isinstance(content, str) or not content.strip():
+                  raise SystemExit(f"{name}: HTML 문자열이 비어 있습니다.")
+
+              lowered = content.lower()
+              if "<html" not in lowered or "plotly" not in lowered:
+                  raise SystemExit(f"{name}: 유효한 Plotly HTML이 아닙니다.")
+
+          html_dir = Path("html")
+          html_dir.mkdir(exist_ok=True)
+
+          for name, content in outputs.items():
+              (html_dir / name).write_text(content, encoding="utf-8")
+          PY
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: html
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
