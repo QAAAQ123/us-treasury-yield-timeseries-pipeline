@@ -35,6 +35,7 @@ SPREAD_LABELS = {
 
 VISIBLE_CURVE = ["3M", "2Y", "10Y"]
 
+
 def create_curve_chart_html(df: pd.DataFrame) -> str:
     """Yield Curve 차트를 생성한다.
 
@@ -144,6 +145,3 @@ def create_spread_chart_html(df: pd.DataFrame) -> str:
     )
 
     return figure.to_html()
-
-
-

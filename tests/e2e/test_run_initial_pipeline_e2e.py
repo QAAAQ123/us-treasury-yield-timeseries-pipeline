@@ -22,7 +22,6 @@ def test_run_initial_pipeline_creates_valid_csv_and_html(tmp_path, monkeypatch):
 
     # 테스트 시작
     pipeline.run_initial_pipeline()
-    curve_html, spread_html = pipeline.generate_visualizations()
 
     # CSV 파일 생성 및 데이터 존재 여부 검증
     assert curve_csv.is_file()
