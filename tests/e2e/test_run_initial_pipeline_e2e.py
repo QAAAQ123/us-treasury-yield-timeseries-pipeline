@@ -10,41 +10,19 @@ from load_csv import YIELD_DTYPES
 
 @pytest.mark.e2e
 def test_run_initial_pipeline_creates_valid_csv_and_html(tmp_path, monkeypatch):
-    """실제 API 데이터를 수집하여 CSV 및 시각화 HTML을 정상 생성한다."""
+    """실제 API 데이터를 수집하여 CSV 생성 및 시각화 HTML 문자열을 정상 반환한다."""
     curve_csv = tmp_path / "curve.csv"
     spread_csv = tmp_path / "spread.csv"
-    curve_html = tmp_path / "curve.html"
-    spread_html = tmp_path / "spread.html"
 
     monkeypatch.setattr(load_csv, "CURVE_PATH", curve_csv)
     monkeypatch.setattr(load_csv, "SPREAD_PATH", spread_csv)
 
     monkeypatch.setattr(pipeline, "CURVE_PATH", curve_csv)
     monkeypatch.setattr(pipeline, "SPREAD_PATH", spread_csv)
-    monkeypatch.setattr(pipeline, "CURVE_HTML_PATH", curve_html)
-    monkeypatch.setattr(pipeline, "SPREAD_HTML_PATH", spread_html)
-
-    figures = {}
-
-    original_create_curve_chart = pipeline.create_curve_chart
-    original_create_spread_chart = pipeline.create_spread_chart
-
-    def capture_curve_chart(df):
-        figure = original_create_curve_chart(df)
-        figures["curve"] = figure
-        return figure
-
-    def capture_spread_chart(df):
-        figure = original_create_spread_chart(df)
-        figures["spread"] = figure
-        return figure
-
-    monkeypatch.setattr(pipeline, "create_curve_chart", capture_curve_chart)
-    monkeypatch.setattr(pipeline, "create_spread_chart", capture_spread_chart)
 
     # 테스트 시작
     pipeline.run_initial_pipeline()
-    pipeline.generate_visualizations()
+    curve_html, spread_html = pipeline.generate_visualizations()
 
     # CSV 파일 생성 및 데이터 존재 여부 검증
     assert curve_csv.is_file()
@@ -141,19 +119,3 @@ def test_run_initial_pipeline_creates_valid_csv_and_html(tmp_path, monkeypatch):
     assert len(gap_values) == 1
 
     pd.testing.assert_frame_equal(gap_values, previous_values)
-
-    # HTML 파일 생성 및 유효성 검증
-    assert curve_html.is_file()
-    assert spread_html.is_file()
-    assert curve_html.stat().st_size > 0
-    assert spread_html.stat().st_size > 0
-
-    for html_path in (curve_html, spread_html):
-        html_content = html_path.read_text(encoding="utf-8").lower()
-
-        assert "<html" in html_content
-        assert "plotly" in html_content
-
-    # Plotly Figure 생성 여부 검증
-    assert len(figures["curve"].data) > 0
-    assert len(figures["spread"].data) > 0

@@ -21,11 +21,8 @@ from logger_config import logger
 from missing_data import handle_missing_data
 from transform import create_yield_curve_dataframe, parse_yield_curve_records
 from visualize import (
-    CURVE_HTML_PATH,
-    SPREAD_HTML_PATH,
-    create_curve_chart,
-    create_spread_chart,
-    save_to_html,
+    create_curve_chart_html,
+    create_spread_chart_html,
 )
 
 TODAY = datetime.now(ZoneInfo("America/New_York")).date()
@@ -77,7 +74,7 @@ def run_incremental_pipeline() -> None:
     update_csv(upsert_dataframe)
 
 
-def generate_visualizations():
+def generate_visualizations() -> tuple[str, str]:
     """최신 CSV 데이터를 기반으로 Yield Curve 및 Spread HTML을 생성한다."""
 
     curve_df = pd.read_csv(CURVE_PATH, parse_dates=["date"], dtype=YIELD_DTYPES)
@@ -95,10 +92,9 @@ def generate_visualizations():
         len(spread_df),
     )
 
-    curve_figure = create_curve_chart(curve_df)
-    spread_figure = create_spread_chart(spread_df)
+    curve_chart_html = create_curve_chart_html(curve_df)
+    spread_chart_html = create_spread_chart_html(spread_df)
 
-    logger.info("Yield Curve/Spread Figure 생성 완료")
+    logger.info("Yield Curve/Spread HTML 생성 완료")
 
-    save_to_html(curve_figure, CURVE_HTML_PATH)
-    save_to_html(spread_figure, SPREAD_HTML_PATH)
+    return curve_chart_html, spread_chart_html
